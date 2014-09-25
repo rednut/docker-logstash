@@ -1,12 +1,18 @@
 #!/bin/bash
+set -e
+set -x
+
+
 #
 # ES_PORT
 # 
 #
 #
 
-VERS="0.0.2"
+VERS="0.0.3"
 echo $VERS;
+
+env
 
 
 # ES_PORT=tcp://172.17.0.13:9200
@@ -20,23 +26,35 @@ echo $VERS;
 # ES_PORT_9300_TCP_PROTO=tcp
 
 
-ES_HOST=${ES_PORT_9300_TCP_ADDR:-${ES_HOST:-127.0.0.1}}
-ES_PORT=${ES_PORT_9300_TCP_PORT:-${ES_PORT:-9300}}
+export ES_HOST=${ES_PORT_9300_TCP_ADDR:-${ES_HOST:-127.0.0.1}}
+export ES_PORT=${ES_PORT_9300_TCP_PORT:-${ES_PORT:-9300}}
 
 #ES_HOST=${ES_HOST:-127.0.0.1}
 #ES_PORT=${ES_PORT:-9300}
-EMBEDDED="false"
-WORKERS=${ELASTICWORKERS:-1}
+
+export EMBEDDED="false"
+export WORKERS=${ELASTICWORKERS:-1}
+
+export LS_CONFIG_FILE=${LS_CONFIG_FILE:-/opt/logstash.conf}
 
 if [ "$ES_HOST" = "127.0.0.1" ] ; then
-    EMBEDDED="true"
+    export EMBEDDED="true"
 fi
 
 
+# replace templaet vars
+cat $LS_CONFIG_FILE | /usr/local/bin/bash-templater.sh > /opt/logstash-run.conf
+cat /opt/logstash-run.conf
 
-if [ ! -f /opt/logstash.conf ]; then
 
-cat << EOF > /opt/logstash.conf
+
+
+if [ ! -f /opt/logstash-run.conf ]; then
+
+cat << EOF > /opt/logstash-run.conf
+#
+# VERSION=$VERS
+#
 input {
   syslog {
     type => syslog
@@ -48,7 +66,7 @@ input {
     ssl_certificate => "/opt/certs/logstash-forwarder.crt"
     ssl_key => "/opt/certs/logstash-forwarder.key"
 
-    type => "$LUMBERJACK_TAG"
+    type => "${LUMBERJACK_TAG}"
   }
   collectd {typesdb => ["/opt/collectd-types.db"]}
 }
@@ -76,23 +94,23 @@ output {
   }
 
   elasticsearch {
-      embedded => $EMBEDDED
-      host => "$ES_HOST"
-      port => "$ES_PORT"
-      workers => $WORKERS
+      embedded => ${EMBEDDED}
+      host => "${ES_HOST}"
+      port => "${ES_PORT}"
+      workers => ${WORKERS}
   }
 }
 EOF
 
 fi
 
-echo "---/opt/logstash.conf---"
-cat /opt/logstash.conf
-echo "---END::/opt/logstash.conf::---"
-ls -l /opt/logstash.conf
+echo "---/opt/logstash-run.conf---"
+cat /opt/logstash-run.conf
+echo "---END::/opt/logstash-run.conf::---"
+ls -l /opt/logstash-run.conf
 
 
-#exec java -jar /opt/logstash/bin/logstsh agent -f /opt/logstash.conf -- web
+/opt/logstash/bin/logstash -f /opt/logstash-run.conf --configtest 
 
-exec /opt/logstash/bin/logstash agent -f /opt/logstash.conf -- web
+exec /opt/logstash/bin/logstash agent -f /opt/logstash-run.conf -- web
 

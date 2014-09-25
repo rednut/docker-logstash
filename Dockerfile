@@ -24,7 +24,10 @@ RUN mkdir -p /opt/logstash && \
 	wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz -O - 2>/dev/null |  \
 	tar xzvf - -C /opt/logstash/ --strip-components=1 
 
-ADD run.sh /usr/local/bin/run.sh
+ADD bin/bash-templater.sh /usr/local/bin/bash-templater.sh
+RUN chmod +x /usr/local/bin/bash-templater.sh
+
+ADD bin/run.sh /usr/local/bin/run.sh
 RUN chmod +x /usr/local/bin/run.sh
 
 RUN mkdir /opt/certs/
