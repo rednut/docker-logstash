@@ -18,7 +18,8 @@ LOGSTASH_CONTAINER=$(docker \
 	run \
 	-d \
 	--name="$NAME" \
-	--link elasticsearch:ES \
+	--link elasticsearch-1:ES \
+	--link redis:REDIS \
 	-v $DATA_VOLUME \
 	-p 5043:5043 \
 	-p 5514:514 \

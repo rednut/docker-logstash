@@ -14,7 +14,7 @@ echo $VERS;
 
 env
 
-
+# REDIS_PORT_6379_TCP_ADDR
 # ES_PORT=tcp://172.17.0.13:9200
 # ES_PORT_9200_TCP=tcp://172.17.0.13:9200
 # ES_PORT_9200_TCP_ADDR=172.17.0.13
@@ -28,6 +28,9 @@ env
 
 export ES_HOST=${ES_PORT_9300_TCP_ADDR:-${ES_HOST:-127.0.0.1}}
 export ES_PORT=${ES_PORT_9300_TCP_PORT:-${ES_PORT:-9300}}
+
+export REDIS_HOST=${REDIS_PORT_6379_TCP_ADDR:-${REDIS_HOST:-}}
+export REDIS_PORT=6379
 
 #ES_HOST=${ES_HOST:-127.0.0.1}
 #ES_PORT=${ES_PORT:-9300}
@@ -112,5 +115,5 @@ ls -l /opt/logstash-run.conf
 
 /opt/logstash/bin/logstash -f /opt/logstash-run.conf --configtest 
 
-exec /opt/logstash/bin/logstash agent -f /opt/logstash-run.conf -- web
+exec nice ionice -c 3 /opt/logstash/bin/logstash agent -f /opt/logstash-run.conf -- web
 
