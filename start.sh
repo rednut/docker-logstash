@@ -10,22 +10,22 @@ DATA_VOLUME=/docker/logstash:/data
 docker stop $NAME || echo "not started yet"
 docker rm -f $NAME || echo "not a container"
 
+#	--link redis:REDIS \
 
-# #sudo docker rm -f logstash;
-# docker run --name=logstash --link elasticsearch:ES -d -t -p 5043:5043 -p 10.9.1.9:514:514 -p 9292:9292 -p 25826:25826  rednut/logstash; docker logs -f logstash
 
 LOGSTASH_CONTAINER=$(docker \
 	run \
 	-d \
 	--name="$NAME" \
-	--link elasticsearch-1:ES \
-	--link redis:REDIS \
-	-v $DATA_VOLUME \
+	--link elasticsearch-direct:ES \
+	-e ES_HOST=es \
+	-e RAM=768M \
+	-v `pwd`/conf.d:/data/logstash/conf.d \
 	-p 5043:5043 \
 	-p 5514:514 \
 	-p 127.0.0.1:9292:9292 \
 	-p 25826:25826 \
-	-e LS_CONFIG_FILE='/data/config_server.d/*.conf' \
+	-e LS_CONFIG='/data/logstash/conf.d/*.conf' \
 	$IMAGE)
 
 echo CID=$LOGSTASH_CONTAINER
