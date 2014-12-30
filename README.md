@@ -1,11 +1,14 @@
 # Logstash Dockerfile
 
-Logstash 1.3.3 (with Kibana 3)
+Customised from github.com/denibertovic/logstash-dockerfile many thanks!
+
+
+Logstash 1.4.*
 
 
 Clone the repo
 
-    git clone https://github.com/denibertovic/logstash-dockerfile
+    git clone https://github.com/rednut/docker-logstash
 
 Create OpenSSL certificates for secure communication with logstash-forwarder.
 The build will fail if no certs are present.
