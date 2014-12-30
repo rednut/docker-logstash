@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 set -x
 
@@ -9,9 +9,6 @@ set -x
 #
 #
 
-VERS="0.0.4"
-echo $VERS;
-
 export RAM=${RAM:-512M}
 #export JAVA OPTIONS="-Xmx${RAM} -Xmx${RAM} "
 
@@ -20,26 +17,44 @@ export LS_NICE=10
 export LS_USE_GC_LOGGING=""
 export LS_OPEN_FILES=16384
 #export LS_LOG_FILE=/var/log/logstash/logstash.log
-
+export ES_EMBEDDED=${ES_EMBEDDED-false}
 export ES_HOST=${ES_HOST:-es}
+export ES_PORT=${ES_PORT:-9200}
+export ES_PROTOCOL=${ES_PROTOCOL:-http}
+export ES_CLUSTER_NAME=${ES_CLUSTER_NAME:-logstash}
+export ES_LS_NODE_NAME=${ES_LS_NODE_NAME:-logstash${HOST}}
 
-# see if we can talk to ES_HOST
-if ping -c 3 ${ES_HOST}
-then
-	echo "ES_HOST is pingabble"
+
+# if embedded warn use as can cause data loss when restopping a container
+if [[ ${ES_EMBEDDED} == "true" ]]; then
+	echo "WARNING: USING EMBEDDED ELASTICSEARCH, will sleep for 20 seconds to give you a chance to stop this container"
+	sleep 20
+
+	# set to localhost if embedded
+	ES_HOST=127.0.0.1
+
 else
-	echo "cannot ping '${ES_HOST}' lets go our sperate ways, bye for now"
-	exit 74;
+	
+	# not embeeded elasticsearch: make sure we can talk to the desired es node before proceeding
+
+	# see if we can get pongs back from requested ES_HOST using ping
+	if ping -c 3 ${ES_HOST}
+	then
+		echo "ES_HOST=${ES_HOST} is pingabble"
+	else
+		echo "cannot ping '${ES_HOST}' lets go our sperate ways, bye for now"
+		exit 74;
+	fi
+
+	export ES_PORT=${ES_PORT_9200_TCP_PORT:-${ES_PORT:-9200}}
 fi
 
-export ES_PORT=${ES_PORT_9200_TCP_PORT:-${ES_PORT:-9200}}
 
 export REDIS_HOST=${REDIS_PORT_6379_TCP_ADDR:-${REDIS_HOST:-}}
 export REDIS_PORT=6379
 
 
-export EMBEDDED="false"
-export WORKERS=${ELASTICWORKERS:-1}
+export ES_WORKERS=${ES_WORKERS:-1}
 
 export LS_ROOT=${LS_ROOT:-/data/logstash}
 export LS_CONFIG=${LS_CONFIG:-${LS_ROOT}/logstash.conf}
@@ -67,6 +82,10 @@ echo "---${LS_CONFIG_FILE}---"
 cat ${LS_CONFIG_FILE}
 echo "---END::${LS_CONFIG_FILE}::---"
 ls -l ${LS_ROOT}
+
+
+
+
 
 ulimit -n ${LS_OPEN_FILES}
 /opt/logstash/bin/logstash -f ${LS_CONFIG_FILE} --configtest 

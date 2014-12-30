@@ -19,6 +19,8 @@ LOGSTASH_CONTAINER=$(docker \
 	--name="$NAME" \
 	--link elasticsearch-direct:ES \
 	-e ES_HOST=es \
+	-e ES_CLUSTER_NAME=rednut-dev \
+	-e ES_WORKERS=2 \
 	-e RAM=768M \
 	-v `pwd`/conf.d:/data/logstash/conf.d \
 	-p 5043:5043 \
