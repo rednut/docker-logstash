@@ -28,8 +28,8 @@ ADD bin/run.sh /usr/local/bin/run.sh
 RUN chmod +x /usr/local/bin/run.sh
 
 RUN mkdir -p /opt/certs/ /data/logstash/conf.d
-ADD certs/logstash-forwarder.crt /opt/certs/logstash-forwarder.crt
-ADD certs/logstash-forwarder.key /opt/certs/logstash-forwarder.key
+#ADD certs/logstash-forwarder.crt /opt/certs/logstash-forwarder.crt
+#ADD certs/logstash-forwarder.key /opt/certs/logstash-forwarder.key
 ADD collectd-types.db /opt/collectd-types.db
 
 ADD conf.d /data/logstash/conf.d
